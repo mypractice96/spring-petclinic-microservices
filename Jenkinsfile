@@ -1,12 +1,4 @@
-pipeline {
-    environment {
-    dtr_host="10.3.2.90"    
-    registry = "admin/calc-service"
-    registryCredential = 'dtr_repo'
-    taggedDockerImage = ''
-    latestDockerImage = ''  
-  }
-    
+pipeline {    
     agent any
     tools {
         maven 'maven3.6.0'
@@ -29,7 +21,7 @@ pipeline {
             parallel {
                 stage('Unit Test') {
                     steps {
-                       sh 'mvn test'
+                       sh 'mvn test'                      
                     }
                 }
             }
@@ -45,48 +37,18 @@ pipeline {
             }            
         }
         
-         stage ('Deploy') {
-            parallel {                
-                   
-                    stage('Server'){
-                          steps{
-                              sh 'echo Deploy here'
-                              /*
-                              sshPublisher(
-                                 publishers: [
-			                        sshPublisherDesc(configName: 'petclinic-server',
-                         			 transfers:						 
-        							 [
-        							 sshTransfer(
-        							 
-        							 cleanRemote: false,
-        							 excludes: '',
-        							 execCommand: 'ansible-playbook /root/web-server-apps/copyAndDeployWar.yml',
-        							 execTimeout: 120000,
-        							 flatten: false,
-        							 makeEmptyDirs: false,
-        							 noDefaultExcludes: false,
-        							 patternSeparator: '[, ]+',
-        							 remoteDirectory: '//root//web-server-apps',
-        							 remoteDirectorySDF: false,
-        							 removePrefix: 'target',
-        							 sourceFiles: 'target/*.war'
-        							 )
-        							 ],
-    							 usePromotionTimestamp: false,
-    							 useWorkspaceInPromotion: false,
-    							 verbose: false
-    							)
-                    			]
-                    			)
-                    			*/
-			
-                          }
+        stage ('Deploy') {
+            parallel{
+                stage('Server'){
+                    steps {
+                     
+                       sshPublisher(publishers: [sshPublisherDesc(configName: 'petclinic-server', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: './deploy-petclinic.sh', execTimeout: 120000, flatten: false, makeEmptyDirs: true, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: 'petclinic-jars', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '**/target/*.jar')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])          
                     }
-                    
-            }
+                }
+            }            
         }
         
+ 
  
         stage ('Clean Up') {
             parallel {
